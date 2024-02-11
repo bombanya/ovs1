@@ -7,6 +7,9 @@
 struct layer {
     double **weights;
     double *last_outputs;
+
+    int8_t* last_output_int;
+
     double *deltas;
 
     uint16_t inputs_n;
@@ -26,5 +29,7 @@ void neuro_free(struct net* net);
 
 void neuro_predict(struct net* net, double *inputs);
 bool neuro_make_train_step(struct net* net, double *inputs, double *ref_out, double err_lim, double a);
+
+void neuro_predict_test_int(struct net* net, int8_t *inputs);
 
 #endif

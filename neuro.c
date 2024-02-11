@@ -32,6 +32,8 @@ struct net* neuro_init(uint16_t inputs_n, uint16_t layers_n, uint16_t *neurons_n
         }
         layer->last_outputs = (double*)malloc(layer->neurons_n * sizeof(double));
         layer->deltas = (double*)malloc(layer->neurons_n * sizeof(double));
+
+        layer->last_output_int = (int8_t*)malloc(layer->neurons_n * sizeof(int8_t));
     }
 
     layer->next = NULL;
@@ -46,6 +48,7 @@ void neuro_free(struct net* net) {
         free(layer->weights);
         free(layer->last_outputs);
         free(layer->deltas);
+        free(layer->last_output_int);
         struct layer* next = layer->next;
         free(layer);
         layer = next;
@@ -66,6 +69,23 @@ void neuro_predict(struct net* net, double *inputs) {
             layer->last_outputs[i] = 1.0 / (1.0 + exp(-output_sum));
         }
         inputs = layer->last_outputs;
+        layer = layer->next;
+    }
+}
+
+void neuro_predict_test_int(struct net* net, int8_t *inputs) {
+    struct layer* layer = net->input;
+    int16_t output_sum;
+
+    while (layer) {
+        for (uint16_t i = 0; i < layer->neurons_n; i++) {
+            output_sum = 0;
+            for (uint16_t j = 0; j < layer->inputs_n; j++) {
+                output_sum += inputs[j] * (int)(layer->weights[i][j] * 32.0);
+            }
+            layer->last_output_int[i] = (int)(1.0 / (1.0 + exp(-(double)output_sum / 1024.0)) * 32.0);
+        }
+        inputs = layer->last_output_int;
         layer = layer->next;
     }
 }
